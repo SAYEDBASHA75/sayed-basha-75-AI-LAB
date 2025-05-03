@@ -71,3 +71,4 @@ while open_list:
                 new_state,
                 path + [current]
             ))
+
