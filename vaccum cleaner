@@ -1,0 +1,28 @@
+# Initial state
+location = 'A'
+status_a = 'dirty'
+status_b = 'dirty'
+
+# Step 1
+print("Vacuum is in Room", location)
+if location == 'A':
+    if status_a == 'dirty':
+        print("Cleaning Room A")
+        status_a = 'clean'
+    print("Moving to Room B")
+    location = 'B'
+
+# Step 2
+print("Vacuum is in Room", location)
+if location == 'B':
+    if status_b == 'dirty':
+        print("Cleaning Room B")
+        status_b = 'clean'
+    print("Moving to Room A")
+    location = 'A'
+
+# Final status
+print("Final status:")
+print("Room A:", status_a)
+print("Room B:", status_b)
+ without function
