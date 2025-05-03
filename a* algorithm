@@ -1,0 +1,73 @@
+import heapq
+
+# Initial state and goal state
+start = [[1, 2, 3],
+         [4, 0, 5],
+         [6, 7, 8]]
+
+goal = [[1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]]
+
+# Heuristic: Manhattan distance
+def heuristic(state, goal):
+    dist = 0
+    for i in range(3):
+        for j in range(3):
+            val = state[i][j]
+            if val != 0:
+                for x in range(3):
+                    for y in range(3):
+                        if goal[x][y] == val:
+                            dist += abs(x - i) + abs(y - j)
+    return dist
+
+# Flatten state to tuple for hashing
+def state_to_tuple(state):
+    return tuple(sum(state, []))
+
+# Find position of 0 (empty)
+def find_zero(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return i, j
+
+# Possible moves: up, down, left, right
+moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+# Priority queue
+open_list = []
+heapq.heappush(open_list, (heuristic(start, goal), 0, start, []))
+
+visited = set()
+
+while open_list:
+    f, g, current, path = heapq.heappop(open_list)
+
+    if current == goal:
+        print("Solution found in", g, "moves:")
+        for step in path + [current]:
+            for row in step:
+                print(row)
+            print()
+        break
+
+    state_id = state_to_tuple(current)
+    if state_id in visited:
+        continue
+    visited.add(state_id)
+
+    x, y = find_zero(current)
+    for dx, dy in moves:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < 3 and 0 <= ny < 3:
+            # Create new state
+            new_state = [row[:] for row in current]
+            new_state[x][y], new_state[nx][ny] = new_state[nx][ny], new_state[x][y]
+            heapq.heappush(open_list, (
+                g + 1 + heuristic(new_state, goal),
+                g + 1,
+                new_state,
+                path + [current]
+            ))
