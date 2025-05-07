@@ -1,74 +1,59 @@
-import heapq
+from queue import PriorityQueue
 
-# Initial state and goal state
-start = [[1, 2, 3],
-         [4, 0, 5],
-         [6, 7, 8]]
+# Graph: Node -> List of (neighbor, cost)
+graph = {
+    'A': [('B', 1), ('C', 3)],
+    'B': [('D', 3), ('E', 1)],
+    'C': [('F', 5)],
+    'D': [],
+    'E': [('F', 2)],
+    'F': []
+}
 
-goal = [[1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 0]]
+# Heuristic values for each node (Estimated cost to reach goal 'F')
+heuristic = {
+    'A': 6,
+    'B': 4,
+    'C': 4,
+    'D': 0,
+    'E': 2,
+    'F': 0
+}
 
-# Heuristic: Manhattan distance
-def heuristic(state, goal):
-    dist = 0
-    for i in range(3):
-        for j in range(3):
-            val = state[i][j]
-            if val != 0:
-                for x in range(3):
-                    for y in range(3):
-                        if goal[x][y] == val:
-                            dist += abs(x - i) + abs(y - j)
-    return dist
+def a_star(start, goal):
+    open_set = PriorityQueue()
+    open_set.put((0, start))
+    came_from = {}
+    
+    g_score = {node: float('inf') for node in graph}
+    g_score[start] = 0
+    
+    f_score = {node: float('inf') for node in graph}
+    f_score[start] = heuristic[start]
+    
+    while not open_set.empty():
+        _, current = open_set.get()
 
-# Flatten state to tuple for hashing
-def state_to_tuple(state):
-    return tuple(sum(state, []))
+        if current == goal:
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            return path[::-1]
 
-# Find position of 0 (empty)
-def find_zero(state):
-    for i in range(3):
-        for j in range(3):
-            if state[i][j] == 0:
-                return i, j
+        for neighbor, cost in graph[current]:
+            tentative_g = g_score[current] + cost
+            if tentative_g < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g
+                f_score[neighbor] = tentative_g + heuristic[neighbor]
+                open_set.put((f_score[neighbor], neighbor))
 
-# Possible moves: up, down, left, right
-moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    return None
 
-# Priority queue
-open_list = []
-heapq.heappush(open_list, (heuristic(start, goal), 0, start, []))
+# Run the algorithm from 'A' to 'F'
+path = a_star('A', 'F')
+print("Shortest path from A to F:", " -> ".join(path))
 
-visited = set()
-
-while open_list:
-    f, g, current, path = heapq.heappop(open_list)
-
-    if current == goal:
-        print("Solution found in", g, "moves:")
-        for step in path + [current]:
-            for row in step:
-                print(row)
-            print()
-        break
-
-    state_id = state_to_tuple(current)
-    if state_id in visited:
-        continue
-    visited.add(state_id)
-
-    x, y = find_zero(current)
-    for dx, dy in moves:
-        nx, ny = x + dx, y + dy
-        if 0 <= nx < 3 and 0 <= ny < 3:
-            # Create new state
-            new_state = [row[:] for row in current]
-            new_state[x][y], new_state[nx][ny] = new_state[nx][ny], new_state[x][y]
-            heapq.heappush(open_list, (
-                g + 1 + heuristic(new_state, goal),
-                g + 1,
-                new_state,
-                path + [current]
-            ))
 
