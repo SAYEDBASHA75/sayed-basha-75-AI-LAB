@@ -1,0 +1,69 @@
+import numpy as np
+
+# Activation function: Sigmoid and its derivative
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# Input data (XOR problem)
+X = np.array([[0, 0],
+              [0, 1],
+              [1, 0],
+              [1, 1]])
+
+# Output labels
+y = np.array([[0],
+              [1],
+              [1],
+              [0]])
+
+# Seed for reproducibility
+np.random.seed(42)
+
+# Initialize weights and biases
+input_layer_neurons = 2
+hidden_layer_neurons = 4
+output_neurons = 1
+
+# Random weights and biases
+wh = np.random.uniform(size=(input_layer_neurons, hidden_layer_neurons))  # Weights for input to hidden
+bh = np.random.uniform(size=(1, hidden_layer_neurons))                   # Bias for hidden layer
+
+wo = np.random.uniform(size=(hidden_layer_neurons, output_neurons))      # Weights for hidden to output
+bo = np.random.uniform(size=(1, output_neurons))                         # Bias for output layer
+
+# Training the neural network
+epochs = 10000
+learning_rate = 0.1
+
+for epoch in range(epochs):
+    # Forward Propagation
+    hidden_layer_input = np.dot(X, wh) + bh
+    hidden_layer_output = sigmoid(hidden_layer_input)
+
+    final_input = np.dot(hidden_layer_output, wo) + bo
+    predicted_output = sigmoid(final_input)
+
+    # Backpropagation
+    error = y - predicted_output
+    d_predicted_output = error * sigmoid_derivative(predicted_output)
+
+    error_hidden_layer = d_predicted_output.dot(wo.T)
+    d_hidden_layer = error_hidden_layer * sigmoid_derivative(hidden_layer_output)
+
+    # Updating weights and biases
+    wo += hidden_layer_output.T.dot(d_predicted_output) * learning_rate
+    bo += np.sum(d_predicted_output, axis=0, keepdims=True) * learning_rate
+
+    wh += X.T.dot(d_hidden_layer) * learning_rate
+    bh += np.sum(d_hidden_layer, axis=0, keepdims=True) * learning_rate
+
+    if epoch % 1000 == 0:
+        loss = np.mean(np.square(error))
+        print(f"Epoch {epoch}, Loss: {loss:.4f}")
+
+# Final output
+print("\nFinal predicted output after training:")
+print(predicted_output)
